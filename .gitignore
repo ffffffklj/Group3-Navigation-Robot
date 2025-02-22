@@ -2,11 +2,46 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
-# IDE
-.vscode/
-.idea/
+*.pyc
+*.pyo
+*.pyd
 
 # Environment
 venv/
 env/
+
+# ROS
+build/
+devel/
+log/
+
+# compile
+*.o
+*.lo
+*.la
+*.al
+*.libs
+*.so
+*.so.*
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# run
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# other
+.DS_Store
+Thumbs.db
