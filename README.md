@@ -1,9 +1,22 @@
 # Group3-Navigation-Robot
 AIS Robotic System
 
+## structure
+```
+navibot_ws/
+│── build/
+│── devel/
+│── src/           # Git root
+│   │── .git/
+│   │── .gitignore
+│   │── README.md
+│   │── navibot/             # main
+│   │── navibot_navigation/  # navigation
+│   │── navibot_arm/         # arm
+│   │── navibot_voice/       # voice
+```
 
-
-## dev
+## create
 ```
 mkdir -p ~/navibot_ws/src
 cd ~/navibot_ws
@@ -21,20 +34,32 @@ create sub pkg
 cd ~/navibot_ws/src
 catkin_create_pkg navibot_navigation roscpp rospy std_msgs move_base amcl # navigation
 catkin_create_pkg navibot_arm roscpp rospy std_msgs moveit_core moveit_ros_planning_interface # arm
-catkin_create_pkg navibot_voice roscpp rospy std_msgs speech_recognition # voice control (already done)
+catkin_create_pkg navibot_voice rospy std_msgs # voice control (already done)
 ```
 
-## structure
+## compile
 ```
-navibot_ws/
-│── build/
-│── devel/
-│── src/           # Git root
-│   │── .git/
-│   │── .gitignore
-│   │── README.md
-│   │── navibot/             # main
-│   │── navibot_navigation/  # navigation
-│   │── navibot_arm/         # arm
-│   │── navibot_voice/       # voice
+cd ~/navibot_ws
+catkin_make
+source devel/setup.bash
+```
+
+## navigation
+TODO
+
+## arm
+TODO
+
+## voice
+```
+# sudo apt install portaudio19-dev
+pip install openai SpeechRecognition pyaudio
+```
+test
+```
+roscore
+```
+in new terminal
+```
+rosrun navibot_voice voice_command.py
 ```

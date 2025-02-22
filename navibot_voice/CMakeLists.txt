@@ -8,9 +8,7 @@ project(navibot_voice)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
   rospy
-  speech_recognition
   std_msgs
 )
 
@@ -106,7 +104,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES navibot_voice
-#  CATKIN_DEPENDS roscpp rospy speech_recognition std_msgs
+#  CATKIN_DEPENDS rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -205,3 +203,9 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+
+catkin_install_python(PROGRAMS
+  scripts/voice_command.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
