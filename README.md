@@ -3,7 +3,7 @@ AIS Robotic System
 
 
 
-### dev
+## dev
 ```
 mkdir -p ~/navibot_ws/src
 cd ~/navibot_ws
@@ -24,6 +24,7 @@ catkin_create_pkg navibot_arm roscpp rospy std_msgs moveit_core moveit_ros_plann
 catkin_create_pkg navibot_voice roscpp rospy std_msgs speech_recognition # voice control (already done)
 ```
 
+## structure
 ```
 navibot_ws/
 │── build/
