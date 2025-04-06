@@ -1,0 +1,159 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- 环境变量设置 -->
+  <env name="GAZEBO_MODEL_PATH" value="$(find turtlebot3_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="$(find turtlebot3_gazebo)/worlds:$(optenv GAZEBO_RESOURCE_PATH)"/>
+
+  <!-- 设置机器人模型参数 -->
+  <arg name="model" default="waffle_pi"/>
+  <param name="tb3_model" value="$(arg model)"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(find open_manipulator_with_tb3_description)/urdf/open_manipulator_with_tb3_waffle_pi.urdf.xacro"/>
+
+  <!-- 加载地图文件 -->
+  <arg name="map_file" default="/home/ubuntu/navibot_ws/src/navibot/map/home1.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen"/>
+
+  <!-- 定义初始位置参数 -->
+  <arg name="initial_pose_x" default="-2.0"/>
+  <arg name="initial_pose_y" default="-0.5"/>
+  <arg name="initial_pose_a" default="0.0"/>
+
+  <!-- 启动 robot_state_publisher -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0"/>
+    <param name="tf_prefix" value=""/>
+    <param name="use_tf_static" value="true"/>
+  </node>
+
+  <!-- 启动 joint_state_publisher -->
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher">
+    <param name="use_gui" value="false"/>
+    <param name="rate" value="50"/>
+    <rosparam param="source_list">[/om_with_tb3/joint_states]</rosparam>
+  </node>
+
+  <!-- 启动 AMCL -->
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <param name="min_particles" value="500"/>
+    <param name="max_particles" value="3000"/>
+    <param name="update_min_d" value="0.20"/>
+    <param name="update_min_a" value="0.20"/>
+    <param name="resample_interval" value="1"/>
+    <param name="transform_tolerance" value="0.5"/>
+    <param name="recovery_alpha_slow" value="0.001"/>
+    <param name="recovery_alpha_fast" value="0.1"/>
+    <param name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <param name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <param name="initial_pose_a" value="$(arg initial_pose_a)"/>
+    <param name="gui_publish_rate" value="10.0"/>
+    
+    <!-- AMCL 激光雷达参数 -->
+    <param name="laser_max_beams" value="180"/>
+    <param name="laser_min_range" value="0.12"/>
+    <param name="laser_max_range" value="3.5"/>
+    <param name="laser_z_hit" value="0.95"/>
+    <param name="laser_z_rand" value="0.05"/>
+    
+    <!-- Odometry 模型参数 -->
+    <param name="odom_model_type" value="diff"/>
+    <param name="odom_alpha1" value="0.1"/>
+    <param name="odom_alpha2" value="0.1"/>
+    <param name="odom_alpha3" value="0.1"/>
+    <param name="odom_alpha4" value="0.1"/>
+    <param name="odom_frame_id" value="odom"/>
+    <param name="base_frame_id" value="base_footprint"/>
+    <param name="global_frame_id" value="map"/>
+  </node>
+
+  <!-- 启动 move_base -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <!-- 全局路径规划器参数 -->
+    <param name="base_global_planner" value="navfn/NavfnROS"/>
+    <param name="planner_frequency" value="1.0"/>
+    <param name="planner_patience" value="5.0"/>
+    
+    <!-- 局部路径规划器参数 -->
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+    <param name="controller_frequency" value="5.0"/>
+    <param name="controller_patience" value="15.0"/>
+    
+    <!-- DWA参数 -->
+    <rosparam ns="DWAPlannerROS">
+        max_vel_x: 0.22
+        min_vel_x: -0.22
+        max_vel_y: 0.0
+        min_vel_y: 0.0
+        max_vel_trans: 0.22
+        min_vel_trans: 0.11
+        max_vel_theta: 2.75
+        min_vel_theta: 1.37
+        acc_lim_x: 2.5
+        acc_lim_y: 0.0
+        acc_lim_theta: 3.2
+        
+        xy_goal_tolerance: 0.05
+        yaw_goal_tolerance: 0.17
+        sim_time: 1.5
+        vx_samples: 20
+        vy_samples: 0
+        vth_samples: 40
+        
+        path_distance_bias: 32.0
+        goal_distance_bias: 24.0
+        occdist_scale: 0.1
+        forward_point_distance: 0.325
+        stop_time_buffer: 0.2
+        scaling_speed: 0.25
+        max_scaling_factor: 0.2
+        
+        oscillation_reset_dist: 0.05
+        oscillation_reset_angle: 0.2
+    </rosparam>
+    
+    <!-- 代价地图参数 -->
+    <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_$(arg model).yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap"/>
+    <rosparam file="$(find turtlebot3_navigation)/param/local_costmap_params.yaml" command="load"/>
+    <rosparam file="$(find turtlebot3_navigation)/param/global_costmap_params.yaml" command="load"/>
+  </node>
+
+  <!-- 加载机械臂控制器配置 -->
+  <rosparam file="$(find open_manipulator_with_tb3_tools)/config/arm_controller.yaml" command="load"/>
+
+  <!-- 启动控制器管理器 -->
+  <node name="controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" ns="/om_with_tb3"/>
+
+  <!-- 启动控制器 -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" 
+        respawn="false" output="screen" ns="/om_with_tb3" 
+        args="--wait-for=/om_with_tb3/controller_manager 
+              joint1_position_controller
+              joint2_position_controller
+              joint3_position_controller
+              joint4_position_controller
+              gripper_position_controller
+              gripper_sub_position_controller
+              joint_state_controller"/>
+
+  <!-- 添加机器人位姿稳定器 -->
+  <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+    <param name="output_frame" value="odom"/>
+    <param name="base_footprint_frame" value="base_footprint"/>
+    <param name="freq" value="30.0"/>
+    <param name="sensor_timeout" value="1.0"/>
+    <param name="odom_used" value="true"/>
+    <param name="imu_used" value="true"/>
+    <param name="vo_used" value="false"/>
+    <param name="debug" value="false"/>
+    <param name="self_diagnose" value="false"/>
+  </node>
+
+  <!-- 启动 rviz -->
+  <node pkg="rviz" type="rviz" name="rviz" required="true"
+        args="-d $(find turtlebot3_navigation)/rviz/turtlebot3_navigation.rviz"/>
+
+  <!-- 静态 TF 转换 -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_tf_pub" 
+        args="0 0 0 0 0 0 map odom" />
+
+</launch>
