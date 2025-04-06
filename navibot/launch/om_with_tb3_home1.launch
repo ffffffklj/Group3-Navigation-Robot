@@ -1,0 +1,45 @@
+<launch>
+  <!-- 环境变量设置 -->
+  <env name="GAZEBO_MODEL_PATH" value="$(find turtlebot3_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="$(find turtlebot3_gazebo)/worlds:$(optenv GAZEBO_RESOURCE_PATH)"/>
+
+  <!-- 定义机器人初始位置参数 -->
+  <arg name="init_x" default="-2.0"/>
+  <arg name="init_y" default="-0.5"/>
+  <arg name="init_z" default="0.0"/>
+
+  <!-- 加载自定义世界 -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/home1.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+    <!-- 添加物理引擎参数 -->
+    <arg name="physics" value="ode"/>
+  </include>
+
+  <!-- 加载机器人描述和状态发布 -->
+  <include file="$(find open_manipulator_with_tb3_tools)/launch/om_with_tb3_robot.launch"/>
+
+  <!-- 在 Gazebo 中生成带机械臂的机器人模型 -->
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" 
+        args="-urdf -model om_with_tb3 
+              -x $(arg init_x) -y $(arg init_y) -z $(arg init_z) 
+              -param robot_description" />
+
+  <!-- 加载机械臂控制器配置 -->
+  <rosparam file="$(find open_manipulator_with_tb3_tools)/config/arm_controller.yaml" command="load"/>
+
+  <!-- 启动控制器 -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" 
+        respawn="false" output="screen" ns="/om_with_tb3" 
+        args="joint1_position_controller
+              joint2_position_controller
+              joint3_position_controller
+              joint4_position_controller
+              gripper_position_controller
+              gripper_sub_position_controller
+              joint_state_controller"/>
+</launch>
