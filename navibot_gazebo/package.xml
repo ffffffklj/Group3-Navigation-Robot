@@ -1,0 +1,12 @@
+<package format="2">
+  <name>navibot_gazebo</name>
+  <version>0.0.1</version>
+  <description>Gazebo simulation package for NaviBot</description>
+  <maintainer email="your@email.com">Your Name</maintainer>
+  <license>MIT</license>
+
+  <depend>gazebo_ros</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+</package>
+
