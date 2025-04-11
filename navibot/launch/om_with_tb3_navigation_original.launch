@@ -134,7 +134,7 @@
     <rosparam file="$(find turtlebot3_navigation)/param/global_costmap_params.yaml" command="load"/>
   </node>
 
-  <!-- 在文件开头添加参数 -->
+  <!-- 控制器不初始化占用 -->
   <arg name="start_arm_controller" default="false"/>
 
   <!-- 修改控制器相关的部分 -->
