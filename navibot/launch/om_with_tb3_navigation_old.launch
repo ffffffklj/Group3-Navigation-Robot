@@ -4,56 +4,39 @@
   <env name="GAZEBO_MODEL_PATH" value="$(find turtlebot3_gazebo)/models:$(optenv GAZEBO_MODEL_PATH)"/>
   <env name="GAZEBO_RESOURCE_PATH" value="$(find turtlebot3_gazebo)/worlds:$(optenv GAZEBO_RESOURCE_PATH)"/>
 
-  <!-- 参数设置 -->
-  <arg name="model" default="waffle_pi"/>
-  <arg name="init_delay" default="3.0"/>
-  <arg name="start_arm_controller" default="false"/>
-
   <!-- 设置机器人模型参数 -->
+  <arg name="model" default="waffle_pi"/>
   <param name="tb3_model" value="$(arg model)"/>
   <param name="robot_description" command="$(find xacro)/xacro $(find open_manipulator_with_tb3_description)/urdf/open_manipulator_with_tb3_waffle_pi.urdf.xacro"/>
 
-  <!-- 添加 TF 缓存节点 -->
-  <node pkg="tf2_ros" type="buffer_server" name="tf2_buffer_server">
-    <param name="buffer_size" value="120.0"/>
-  </node>
+  <!-- 添加等待时间参数 -->
+  <arg name="init_delay" default="3.0"/>
+  <arg name="amcl_delay" default="4.0"/>
+  <arg name="rviz_delay" default="5.0"/>
 
-  <!-- 首先建立基本的 TF 树 -->
-  <node pkg="tf" type="static_transform_publisher" name="world_to_map"
-        args="0 0 0 0 0 0 world map 50"/>
+  <!-- 首先启动 TF 相关节点 -->
+  <!-- 静态 TF 转换，确保在其他节点之前启动 -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_tf_pub" 
+        args="0 0 0 0 0 0 map odom"/>
 
-  <node pkg="tf" type="static_transform_publisher" name="map_to_odom"
-        args="0 0 0 0 0 0 map odom 50"/>
-
-  <!-- 启动 robot_state_publisher，确保在 TF 转换之后 -->
-  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"
-        launch-prefix="bash -c 'sleep 1.0; $0 $@'">
-    <param name="publish_frequency" type="double" value="100.0"/>
+  <!-- 启动 robot_state_publisher -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0"/>
     <param name="tf_prefix" value=""/>
     <param name="use_tf_static" value="true"/>
-    <param name="ignore_timestamp" value="true"/>
   </node>
 
   <!-- 启动 joint_state_publisher -->
-  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher"
-        launch-prefix="bash -c 'sleep 1.5; $0 $@'">
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher">
     <param name="use_gui" value="false"/>
     <param name="rate" value="50"/>
     <rosparam param="source_list">[/om_with_tb3/joint_states]</rosparam>
-    <param name="publish_default_positions" value="true"/>
   </node>
 
-  <!-- 添加基础 TF 转换 -->
-  <node pkg="tf" type="static_transform_publisher" name="base_footprint_to_base_link"
-        args="0 0 0.010 0 0 0 base_footprint base_link 50"/>
-
-  <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser"
-        args="0.0 0.0 0.114 0 0 0 base_link base_scan 50"/>
-
-  <!-- 添加等待节点确保 TF 树建立 -->
+  <!-- 等待一段时间确保 TF 树建立 -->
   <node pkg="rostopic" type="rostopic" name="wait_for_tf" 
         args="echo /tf" output="screen"
-        launch-prefix="bash -c 'sleep 2.0; $0 $@'"/>
+        launch-prefix="bash -c 'sleep $(arg init_delay); $0 $@'"/>
 
   <!-- 加载地图文件 -->
   <arg name="map_file" default="/home/ubuntu/navibot_ws/src/navibot/map/layer1.yaml"/>
@@ -65,17 +48,17 @@
   <arg name="initial_pose_y" default="-0.5"/>
   <arg name="initial_pose_a" default="0.0"/>
 
-  <!-- 启动 AMCL -->
+  <!-- 启动 AMCL，等待地图和 TF 准备好 -->
   <node pkg="amcl" type="amcl" name="amcl" output="screen"
-        launch-prefix="bash -c 'sleep $(arg init_delay); $0 $@'">
-    <param name="min_particles" value="1000"/>
-    <param name="max_particles" value="5000"/>
-    <param name="update_min_d" value="0.1"/>
-    <param name="update_min_a" value="0.1"/>
-    <param name="resample_interval" value="2"/>
-    <param name="transform_tolerance" value="0.5"/>
-    <param name="recovery_alpha_slow" value="0.0005"/>
-    <param name="recovery_alpha_fast" value="0.05"/>
+        launch-prefix="bash -c 'sleep $(arg amcl_delay); $0 $@'">
+    <param name="min_particles" value="500"/>
+    <param name="max_particles" value="3000"/>
+    <param name="update_min_d" value="0.20"/>
+    <param name="update_min_a" value="0.20"/>
+    <param name="resample_interval" value="1"/>
+    <param name="transform_tolerance" value="1.0"/>  <!-- 增加转换容差 -->
+    <param name="recovery_alpha_slow" value="0.001"/>
+    <param name="recovery_alpha_fast" value="0.1"/>
     <param name="initial_pose_x" value="$(arg initial_pose_x)"/>
     <param name="initial_pose_y" value="$(arg initial_pose_y)"/>
     <param name="initial_pose_a" value="$(arg initial_pose_a)"/>
@@ -97,12 +80,10 @@
     <param name="odom_frame_id" value="odom"/>
     <param name="base_frame_id" value="base_footprint"/>
     <param name="global_frame_id" value="map"/>
-    <param name="tf_broadcast" value="true"/>
   </node>
 
   <!-- 启动 move_base -->
-  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen"
-        launch-prefix="bash -c 'sleep $(arg init_delay); $0 $@'">
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <!-- 全局路径规划器参数 -->
     <param name="base_global_planner" value="navfn/NavfnROS"/>
     <param name="planner_frequency" value="1.0"/>
@@ -110,22 +91,22 @@
     
     <!-- 局部路径规划器参数 -->
     <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
-    <param name="controller_frequency" value="10.0"/>
+    <param name="controller_frequency" value="5.0"/>
     <param name="controller_patience" value="15.0"/>
     
     <!-- DWA参数 -->
     <rosparam ns="DWAPlannerROS">
-        max_vel_x: 0.2
-        min_vel_x: -0.2
+        max_vel_x: 0.22
+        min_vel_x: -0.22
         max_vel_y: 0.0
         min_vel_y: 0.0
         max_vel_trans: 0.22
         min_vel_trans: 0.11
-        max_vel_theta: 1.0
-        min_vel_theta: 0.5
-        acc_lim_x: 1.0
+        max_vel_theta: 2.75
+        min_vel_theta: 1.37
+        acc_lim_x: 2.5
         acc_lim_y: 0.0
-        acc_lim_theta: 1.0
+        acc_lim_theta: 3.2
         
         xy_goal_tolerance: 0.05
         yaw_goal_tolerance: 0.17
@@ -151,10 +132,10 @@
     <rosparam file="$(find turtlebot3_navigation)/param/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap"/>
     <rosparam file="$(find turtlebot3_navigation)/param/local_costmap_params.yaml" command="load"/>
     <rosparam file="$(find turtlebot3_navigation)/param/global_costmap_params.yaml" command="load"/>
-    <param name="oscillation_timeout" value="10.0"/>
-    <param name="oscillation_distance" value="0.2"/>
-    <param name="recovery_behavior_enabled" value="true"/>
   </node>
+
+  <!-- 在文件开头添加参数 -->
+  <arg name="start_arm_controller" default="false"/>
 
   <!-- 修改控制器相关的部分 -->
   <group if="$(arg start_arm_controller)">
@@ -162,14 +143,11 @@
     <rosparam file="$(find open_manipulator_with_tb3_tools)/config/arm_controller.yaml" command="load"/>
 
     <!-- 启动控制器管理器 -->
-    <node name="controller_manager" pkg="controller_manager" type="controller_manager" 
-          respawn="false" output="screen" ns="/om_with_tb3"
-          launch-prefix="bash -c 'sleep 2.5; $0 $@'"/>
+    <node name="controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" ns="/om_with_tb3"/>
 
     <!-- 启动控制器 -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner" 
           respawn="false" output="screen" ns="/om_with_tb3" 
-          launch-prefix="bash -c 'sleep 3.0; $0 $@'"
           args="--wait-for=/om_with_tb3/controller_manager 
                 joint1_position_controller
                 joint2_position_controller
@@ -184,36 +162,18 @@
   <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
     <param name="output_frame" value="odom"/>
     <param name="base_footprint_frame" value="base_footprint"/>
-    <param name="freq" value="100.0"/>
-    <param name="sensor_timeout" value="0.5"/>
+    <param name="freq" value="30.0"/>
+    <param name="sensor_timeout" value="1.0"/>
     <param name="odom_used" value="true"/>
     <param name="imu_used" value="true"/>
     <param name="vo_used" value="false"/>
     <param name="debug" value="false"/>
     <param name="self_diagnose" value="false"/>
-    
-    <rosparam>
-      odom_covariance: [0.1, 0, 0, 0, 0, 0,
-                       0, 0.1, 0, 0, 0, 0,
-                       0, 0, 0.1, 0, 0, 0,
-                       0, 0, 0, 0.1, 0, 0,
-                       0, 0, 0, 0, 0.1, 0,
-                       0, 0, 0, 0, 0, 0.1]
-      imu_covariance: [0.1, 0, 0, 0, 0, 0,
-                      0, 0.1, 0, 0, 0, 0,
-                      0, 0, 0.1, 0, 0, 0,
-                      0, 0, 0, 0.1, 0, 0,
-                      0, 0, 0, 0, 0.1, 0,
-                      0, 0, 0, 0, 0, 0.1]
-    </rosparam>
   </node>
 
-  <!-- 最后启动 rviz -->
+  <!-- 最后启动 rviz，确保其他组件都已准备就绪 -->
   <node pkg="rviz" type="rviz" name="rviz" required="true"
         args="-d $(find turtlebot3_navigation)/rviz/turtlebot3_navigation.rviz"
-        launch-prefix="bash -c 'sleep 8.0; $0 $@'">
-    <param name="display_config_retry_count" value="5"/>
-    <param name="display_config_retry_delay" value="2.0"/>
-  </node>
+        launch-prefix="bash -c 'sleep $(arg rviz_delay); $0 $@'"/>
 
 </launch>

@@ -40,7 +40,7 @@ class ArmController:
             rospy.logerr(f"初始化错误: {str(e)}")
             raise e
 
-    def move_joints(self, positions, duration=2.0):
+    def move_joints(self, positions, duration=0.6):
         """移动关节到指定位置"""
         try:
             rospy.loginfo(f"移动关节到位置: {positions}")
