@@ -2445,10 +2445,10 @@
       <pose>-8.39662 -1.36895 0 0 -0 0</pose>
     </model>
     <state world_name='default'>
-      <sim_time>317 56000000</sim_time>
-      <real_time>318 261882773</real_time>
-      <wall_time>1744023273 46644787</wall_time>
-      <iterations>317056</iterations>
+      <sim_time>374 652000000</sim_time>
+      <real_time>57 718971352</real_time>
+      <wall_time>1744700630 125781049</wall_time>
+      <iterations>57596</iterations>
       <model name='bookshelf'>
         <pose>2.35064 -4.29894 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -2490,28 +2490,28 @@
         </link>
       </model>
       <model name='elevator_call_buttons'>
-        <pose>-1.02167 -0.53025 0.4 0 -0 3.13293</pose>
+        <pose>-1.02167 -0.53025 0.25 0 -0 3.13293</pose>
         <scale>1 1 1</scale>
         <link name='down_arrow_link'>
-          <pose>-1.02177 -0.54125 0.34 -3.14159 1.57079 -1.57947</pose>
+          <pose>-1.02177 -0.54125 0.19 -3.14159 1.57079 -1.57947</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='frame_link'>
-          <pose>-1.02172 -0.53625 0.4 0 -0 3.13293</pose>
+          <pose>-1.02172 -0.53625 0.25 0 -0 3.13293</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='panel_link'>
-          <pose>-1.02167 -0.53025 0.4 0 -0 3.13293</pose>
+          <pose>-1.02167 -0.53025 0.25 0 -0 3.13293</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
         <link name='up_arrow_link'>
-          <pose>-1.02177 -0.54125 0.46 3.14159 -1.57079 -1.57947</pose>
+          <pose>-1.02177 -0.54125 0.31 3.14159 -1.57079 -1.57947</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -2528,7 +2528,7 @@
         </link>
       </model>
       <model name='layer3'>
-        <pose>0.509243 -1.20559 0 0 -0 0</pose>
+        <pose>0.50924 -1.20559 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='Wall_0'>
           <pose>-9.59076 -2.05559 0 0 0 -1.5708</pose>
@@ -2729,7 +2729,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-1.29663 -3.04639 40.1076 3.14159 1.57079 3.14159</pose>
+        <pose>-0.498837 -3.35763 0.253962 0 -0 1.5708</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
