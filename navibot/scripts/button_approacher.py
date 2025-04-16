@@ -20,8 +20,8 @@ class ButtonDetector:
         # 参数设置
         self.DETECTION_THRESHOLD = 0.9
         self.TARGET_DISTANCE = 0.3     # 目标距离（米）
-        self.LINEAR_SPEED = 0.1        # 线速度（米/秒）
-        self.ANGULAR_SPEED = 0.2       # 角速度（弧度/秒）
+        self.LINEAR_SPEED = 0.08       # 线速度（米/秒）降低默认速度
+        self.ANGULAR_SPEED = 0.15      # 角速度（弧度/秒）降低默认速度
         self.FOV = math.radians(30)    # 相机视场角（弧度）
         
         # 状态变量
@@ -153,7 +153,7 @@ class ButtonDetector:
             rospy.logerr(f"错误详情: {str(e.__class__.__name__)}")
 
     def execute_movement(self):
-        """执行移动 - 先旋转，再前进"""
+        """执行移动 - 先旋转，再前进固定距离"""
         try:
             rospy.loginfo("开始执行移动...")
             
@@ -162,10 +162,9 @@ class ButtonDetector:
             self.rotate(self.target_angle)
             rospy.sleep(1)  # 等待稳定
             
-            # 2. 前进到目标距离
-            distance_to_move = max(0.0, self.target_distance - self.TARGET_DISTANCE)
-            rospy.loginfo(f"前进距离: {distance_to_move:.2f}米")
-            self.move_forward(distance_to_move)
+            # 2. 前进固定距离0.4米
+            rospy.loginfo("前进固定距离: 0.4米")
+            self.move_forward(0.4)
             
             self.movement_completed = True
             rospy.loginfo("移动完成！")
@@ -178,12 +177,12 @@ class ButtonDetector:
         """旋转指定角度（弧度）"""
         vel_msg = Twist()
         
-        # 计算旋转时间（增加补偿系数1.2）
+        # 计算旋转时间（降低补偿系数到1.1）
         angular_speed = self.ANGULAR_SPEED
-        if abs(angle_rad) < math.radians(10):  # 小角度时降低速度
-            angular_speed *= 0.5
+        if abs(angle_rad) < math.radians(10):  # 小角度时更大幅度降低速度
+            angular_speed *= 0.3
             
-        rotation_time = abs(angle_rad / angular_speed) * 1.2
+        rotation_time = abs(angle_rad / angular_speed) * 1.1
         
         # 设置旋转方向
         vel_msg.angular.z = angular_speed if angle_rad > 0 else -angular_speed
@@ -202,12 +201,12 @@ class ButtonDetector:
         """向前移动指定距离"""
         vel_msg = Twist()
         
-        # 计算移动时间（增加补偿系数1.1）
+        # 计算移动时间（降低补偿系数到1.05）
         linear_speed = self.LINEAR_SPEED
-        if distance < 0.2:  # 短距离时降低速度
-            linear_speed *= 0.5
+        if distance < 0.3:  # 增加短距离的判定范围，更大幅度降低速度
+            linear_speed *= 0.4
             
-        movement_time = (distance / linear_speed) * 1.1
+        movement_time = (distance / linear_speed) * 1.05
         
         # 设置移动速度
         vel_msg.linear.x = linear_speed if distance > 0 else 0

@@ -22,9 +22,9 @@ class ArmController:
             # 预定义位置
             self.positions = {
                 "start": [0.0, 0.0, 0.0, 0.0],          # 初始位置，全0
-                "home": [0.0, -0.65, 0.45, 0.4],           # 向后收缩位置
-                "up": [0.0, 0.3, -0.6, -0.4],            # 向前上方伸出
-                "down": [0.0, 0.3, -0.3, 0.2]            # 向前下方伸出
+                "home": [0.0, -1, 0.5, 0.5],           # 向后收缩位置
+                "up": [0.0, -0.15, 0.3, -0.4],            # 向前上方伸出
+                "down": [0.0, -0.2, 0.5, 0.3]            # 向前下方伸出
             }
             
             rospy.loginfo("等待系统初始化...")
@@ -68,13 +68,7 @@ class ArmController:
             rospy.loginfo(f"当前状态: {self.current_state}, 目标状态: {target_state}")
             
             if target_state != self.current_state:
-                # 如果当前不在start状态，且目标不是start状态，则先回到start
-                if self.current_state != "start" and target_state != "start":
-                    rospy.loginfo("先回到start位置...")
-                    self.move_joints(self.positions["start"])
-                    rospy.sleep(1)
-                
-                # 移动到目标位置
+                # 直接移动到目标位置
                 rospy.loginfo(f"移动到{target_state}位置...")
                 self.move_joints(self.positions[target_state])
                 rospy.sleep(1)
