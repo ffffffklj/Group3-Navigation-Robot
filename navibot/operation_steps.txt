@@ -1,0 +1,20 @@
+First of first: 任意时候觉得卡了，只需要gazebo仿真中点下方的暂停键，关闭实时物理模拟，就可以解决
+
+1. 可能会缺失的包
+ultralytics, ros-noetic-robot-pose-ekf, ros-noetic-amcl
+
+2. 启动第n层的gazebo仿真
+roslaunch navibot om_with_tb3_layer1.launch
+
+3. 手动调整一次机械臂位置成home，然后quit即可。不然可能会遮挡laser的扫描
+rosrun navibot touch_button.py
+
+4. 打开导航。第一次启动后，如果未能正确加载，则关闭rviz再打开
+roslaunch navibot om_with_tb3_navigation_original.launch
+
+5. 位置初始化（记得根据不同楼层调整初始化的参数）
+rosrun navibot initial_pose.py
+
+6. 打开简易导航ui
+rosrun navibot navigation_gui.py
+

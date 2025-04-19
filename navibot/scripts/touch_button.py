@@ -6,8 +6,9 @@ from sensor_msgs.msg import JointState
 from math import pi
 
 class ArmController:
-    def __init__(self):
-        rospy.init_node('arm_controller', anonymous=True)
+    def __init__(self, skip_node_init=False):
+        if not skip_node_init:
+            rospy.init_node('arm_controller', anonymous=True)
         
         try:
             # 创建关节控制器的发布者
@@ -17,21 +18,21 @@ class ArmController:
             ]
             
             # 当前状态
-            self.current_state = "start"
+            self.current_state = "home"
             
             # 预定义位置
             self.positions = {
                 "start": [0.0, 0.0, 0.0, 0.0],          # 初始位置，全0
-                "home": [0.0, -1, 0.5, 0.5],           # 向后收缩位置
-                "up": [0.0, -0.15, 0.3, -0.4],            # 向前上方伸出
-                "down": [0.0, -0.2, 0.5, 0.3]            # 向前下方伸出
+                "home": [0.0, -1, 0.45, 0.4],           # 向后收缩位置
+                "up": [0.0, 0.3, -0.6, -0.4],            # 向前上方伸出
+                "down": [0.0, 0.3, -0.3, 0.2]            # 向前下方伸出
             }
             
             rospy.loginfo("等待系统初始化...")
             rospy.sleep(3)  # 等待系统初始化
             
             # 确保从start状态开始
-            self.move_joints(self.positions["start"])
+            self.move_joints(self.positions["home"])
             rospy.sleep(1)
             
             rospy.loginfo("机械臂控制器初始化完成")

@@ -10,7 +10,7 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import Pose, Point, Quaternion
 from actionlib_msgs.msg import GoalStatus
 import tf
-from button_approacher import ButtonDetector
+from button_approacher import NavigationButtonDetector
 from touch_button import ArmController
 import time
 
@@ -216,30 +216,52 @@ class NavigationGUI(QMainWindow):
     def operate_elevator(self, next_floor=None, final_destination=None):
         """操作电梯并处理楼层切换"""
         try:
+            # 检查next_floor是否有效
+            if next_floor is None:
+                rospy.logerr("未指定目标楼层")
+                self.status_label.setText("错误：未指定目标楼层")
+                return
+
             # 初始化按钮检测器和机械臂控制器
             if self.button_detector is None:
-                self.button_detector = ButtonDetector()
+                self.button_detector = NavigationButtonDetector(skip_node_init=True)
             if self.arm_controller is None:
-                self.arm_controller = ArmController()
+                self.arm_controller = ArmController(skip_node_init=True)
 
             # 等待按钮检测器和机械臂控制器初始化
             rospy.sleep(2)
 
+            # 先运行按钮检测和接近
+            self.status_label.setText("正在检测电梯按钮...")
+            self.button_detector.run()
+
+            # 等待按钮检测和接近完成
+            while not self.button_detector.movement_completed and not rospy.is_shutdown():
+                rospy.sleep(0.1)
+            
+            # 确保机器人完全停止
+            rospy.sleep(1)
+
             # 根据目标楼层决定上楼还是下楼
             if next_floor > self.current_floor:
                 # 上楼
-                self.status_label.setText("正在按上楼按钮...")
+                self.status_label.setText("正在移动机械臂到按钮位置...")
                 self.arm_controller.move_to_state("up")
                 rospy.sleep(2)  # 短暂停留
+                self.status_label.setText("正在收回机械臂...")
                 self.arm_controller.move_to_state("home")
                 self.status_label.setText(f"已按上楼按钮，模拟切换到第{next_floor}层")
-            else:
+            elif next_floor < self.current_floor:
                 # 下楼
-                self.status_label.setText("正在按下楼按钮...")
+                self.status_label.setText("正在移动机械臂到按钮位置...")
                 self.arm_controller.move_to_state("down")
                 rospy.sleep(2)  # 短暂停留
+                self.status_label.setText("正在收回机械臂...")
                 self.arm_controller.move_to_state("home")
                 self.status_label.setText(f"已按下楼按钮，模拟切换到第{next_floor}层")
+            else:
+                self.status_label.setText("已在目标楼层，无需切换")
+                return
 
             # 更新当前楼层
             self.set_current_floor(next_floor)
