@@ -45,3 +45,13 @@ Makefile
 # other
 .DS_Store
 Thumbs.db
+
+ar_track_alvar_msgs/
+open_manipulator/
+open_manipulator_msgs/
+open_manipulator_simulations/
+open_manipulator_with_tb3/
+robotis_manipulator/
+turtlebot3/
+turtlebot3_msgs/
+turtlebot3_simulations/
