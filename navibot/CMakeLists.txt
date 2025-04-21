@@ -20,10 +20,10 @@ include_directories(
 )
 
 # 添加 Python 脚本安装配置
-catkin_install_python(PROGRAMS
-  scripts/my_script.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+# catkin_install_python(PROGRAMS
+#   scripts/my_script.py
+#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
 # 添加其他可能需要的 Python 脚本，按需取消注释和修改文件名
 # catkin_install_python(PROGRAMS

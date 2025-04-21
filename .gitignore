@@ -47,6 +47,7 @@ Makefile
 Thumbs.db
 
 ar_track_alvar_msgs/
+# ar_track_alvar/
 open_manipulator/
 open_manipulator_msgs/
 open_manipulator_simulations/
