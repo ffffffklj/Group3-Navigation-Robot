@@ -116,7 +116,7 @@
         vth_samples: 60
         dt_ref: 0.5          
         dt_hysteresis: 0.1   
-        weight_optimaltime: 1.0    # 可以适当减小，比如 0.5
+        weight_optimaltime: 1.0    # 可以适当减小
         weight_obstacle: 50.0      # 增加障碍物避让权重
         path_distance_bias: 32.0
         goal_distance_bias: 24.0
