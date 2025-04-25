@@ -9,6 +9,7 @@ __pycache__/
 # Environment
 venv/
 env/
+.env
 
 # ROS
 build/
