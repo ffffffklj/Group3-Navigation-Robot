@@ -1,0 +1,7 @@
+<launch>
+  <!-- 启动语音识别节点 -->
+  <node pkg="navibot_voice"
+        type="voice_command.py"
+        name="voice_command"
+        output="screen" />
+</launch>

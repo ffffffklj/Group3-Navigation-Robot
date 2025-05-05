@@ -1,48 +1,84 @@
 #!/usr/bin/env python3
-import openai
 import rospy
-import speech_recognition as sr
 from std_msgs.msg import String
+import sounddevice as sd
+import scipy.io.wavfile as wavfile
+import openai
+import os, re
+import dotenv
 
-openai.api_key = "TODO"
+dotenv.load_dotenv()
+openai.api_type = "azure"
 
-def recognize_speech():
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        rospy.loginfo("Listening for voice command...")
-        recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source)
+# 音频参数
+SAMPLE_RATE = 16000  # Hz
+DURATION = 5         # seconds
+TEMP_WAV_PATH = '/tmp/voice_command.wav'
+WHISPER_DEPLOYMENT_NAME = "whisper"
 
-    try:
-        text = recognizer.recognize_google(audio)
-        rospy.loginfo(f"Recognized: {text}")
-        return text
-    except sr.UnknownValueError:
-        rospy.logwarn("Could not understand audio")
-        return ""
-    except sr.RequestError:
-        rospy.logwarn("Could not request results, check internet connection")
-        return ""
+# check if the environment variable is set
+if 'AZURE_OPENAI_API_KEY' not in os.environ:
+    raise ValueError("Environment variable AZURE_OPENAI_API_KEY is not set.")
+if 'AZURE_OPENAI_ENDPOINT' not in os.environ:
+    raise ValueError("Environment variable AZURE_OPENAI_API_BASE is not set.")
 
-def query_openai(text):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": text}]
-    )
-    return response["choices"][0]["message"]["content"]
+# set default device (optional)
+# sd.default.device = os.getenv("AUDIO_DEVICE_ID", None)
 
-def voice_command_node():
-    rospy.init_node("voice_command_node")
-    pub = rospy.Publisher("/navibot/voice_command", String, queue_size=10)
-    rate = rospy.Rate(1)
+def record_audio(path: str):
+    rospy.loginfo(f"start recording for {DURATION}s...")
+    audio = sd.rec(int(DURATION * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1)
+    sd.wait()
+    wavfile.write(path, SAMPLE_RATE, audio)
+    rospy.loginfo(f"wav saved to: {path}")
+
+def transcribe(path: str) -> str:
+    with open(path, 'rb') as f:
+        resp = openai.audio.transcriptions.create(
+            file=f,
+            model=WHISPER_DEPLOYMENT_NAME,
+            response_format="text"
+        )
+    if isinstance(resp, dict):
+        text = resp["text"]
+    else:
+        text = resp
+    rospy.loginfo(f"transcription: {text}")
+    return text
+
+def parse_destination(text):
+    """
+    - take me to the ...
+    - go to ...
+    - navigate to ...
+    - bring me to ...
+    - head to ...
+    """
+    pattern = r"(?:go to|take me to|navigate to|bring me to|head to)\s+(?:the\s)?(?P<dest>[a-zA-Z\s]+)"
+    match = re.search(pattern, text, re.IGNORECASE)
+    if match:
+        return match.group("dest").strip().lower()
+    return None
+
+def main():
+    rospy.init_node('voice_control')
+    pub = rospy.Publisher('/voice_command', String, queue_size=10)
+    rate = rospy.Rate(1.0 / DURATION)
 
     while not rospy.is_shutdown():
-        command = recognize_speech()
-        if command:
-            response = query_openai(command)
-            rospy.loginfo(f"AI Response: {response}")
-            pub.publish(response)
+        try:
+            record_audio(TEMP_WAV_PATH)
+            cmd = transcribe(TEMP_WAV_PATH)
+            dst = parse_destination(cmd)
+            if dst:
+                rospy.loginfo(f"destination: {dst}")
+                msg = String()
+                msg.data = dst
+                pub.publish(cmd)
+                break
+        except Exception as e:
+            rospy.logerr(f"voice_cmd error: {e}")
         rate.sleep()
 
-if __name__ == "__main__":
-    voice_command_node()
+if __name__ == '__main__':
+    main()

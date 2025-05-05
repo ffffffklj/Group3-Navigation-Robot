@@ -11,3 +11,4 @@ sensor_msgs==1.13.1
 sounddevice==0.5.1
 tf==1.13.2
 ultralytics==8.3.116
+pyaudio
