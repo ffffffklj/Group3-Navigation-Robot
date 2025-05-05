@@ -57,8 +57,12 @@ rosrun nabvibot path_planning.py
 ```
 
 
-## arm
-TODO
+## Target Detection and Robotic Arm
+```
+roslaunch navibot om_with_tb3_layer1.launch # Launch Gazebo
+rosrun navibot touch_button.py # 4 poses of the robotic arm
+rosrun navibot button_approacher.py # Go toward the target
+```
 
 ## voice
 ```
