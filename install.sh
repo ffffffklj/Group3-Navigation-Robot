@@ -8,7 +8,7 @@
 [ -d "turtlebot3" ] || git clone -b noetic-devel git clone https://github.com/ROBOTIS-GIT/turtlebot3.git
 [ -d "turtlebot3_msgs" ] || git clone -b noetic git clone https://github.com/ROBOTIS-GIT/turtlebot3_msgs.git
 [ -d "turtlebot3_simulations" ] || git clone -b noetic-devel git clone https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
-
+[ -d "vision_opencv" ] || git clone -b noetic https://github.com/ros-perception/vision_opencv.git
 # TODO: move arm.yaml to config/
 
 # Install dependent system packages

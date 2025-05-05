@@ -5,6 +5,7 @@ import rospy
 from sensor_msgs.msg import Image, LaserScan
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+import cv2
 from cv_bridge import CvBridge
 from ultralytics import YOLO
 import numpy as np
