@@ -47,11 +47,14 @@ source devel/setup.bash
 ## navigation
 ```
 #sudo apt-get install ros-noetic-teb-local-planner
-roslaunch navibot om_with_tb3_layer1.launch
-#Manually move the robotic arm to the home position once, then quit. Otherwise, it might block the laser scan
+roslaunch navibot om_with_tb3_layer1.launch # Launch Gazebo
+```
+Manually move the robotic arm to the home position once, then quit. Otherwise, it might block the laser scan
+```
 rosrun navibot touch_button.py
-roslaunch navibot om_with_tb3_navigation_original.launch
-rosrun nabvibot path_planning.py
+```
+roslaunch navibot om_with_tb3_navigation_original.launch # Launch Rviz
+rosrun nabvibot path_planning.py 
 ```
 
 ## arm
