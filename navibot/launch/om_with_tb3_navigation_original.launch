@@ -90,31 +90,34 @@
     <param name="planner_patience" value="5.0"/>
     
     <!-- 局部路径规划器参数 -->
-    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
     <param name="controller_frequency" value="5.0"/>
     <param name="controller_patience" value="15.0"/>
     
-    <!-- DWA参数 -->
-    <rosparam ns="DWAPlannerROS">
+    <!-- TEB参数 -->
+    <rosparam ns="TebLocalPlannerROS">
         max_vel_x: 0.22
         min_vel_x: -0.22
         max_vel_y: 0.0
         min_vel_y: 0.0
         max_vel_trans: 0.22
         min_vel_trans: 0.11
-        max_vel_theta: 2.75
-        min_vel_theta: 1.37
+        max_vel_theta: 1.0
+        min_vel_theta: 0.1
         acc_lim_x: 2.5
         acc_lim_y: 0.0
         acc_lim_theta: 3.2
         
         xy_goal_tolerance: 0.05
         yaw_goal_tolerance: 0.17
-        sim_time: 1.5
+        sim_time: 3
         vx_samples: 20
         vy_samples: 0
-        vth_samples: 40
-        
+        vth_samples: 60
+        dt_ref: 0.5          
+        dt_hysteresis: 0.1   
+        weight_optimaltime: 1.0    # 可以适当减小
+        weight_obstacle: 50.0      # 增加障碍物避让权重
         path_distance_bias: 32.0
         goal_distance_bias: 24.0
         occdist_scale: 0.1
