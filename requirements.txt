@@ -1,9 +1,9 @@
 actionlib==1.14.0
 catkin_pkg==1.0.0
-cv_bridge==1.16.2
+#cv_bridge==1.16.2
 numpy==1.24.4
 openai==1.76.0
-PyQt5==5.15.11
+#PyQt5==5.15.11
 python-dotenv==1.1.0
 rospy==1.17.0
 scipy==1.15.2
