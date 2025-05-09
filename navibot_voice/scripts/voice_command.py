@@ -74,8 +74,10 @@ def main():
                 rospy.loginfo(f"destination: {dst}")
                 msg = String()
                 msg.data = dst
-                pub.publish(cmd)
-                break
+                pub.publish(msg)
+                #break
+            else:
+                rospy.loginfo("No valid destination found in the command.")
         except Exception as e:
             rospy.logerr(f"voice_cmd error: {e}")
         rate.sleep()
